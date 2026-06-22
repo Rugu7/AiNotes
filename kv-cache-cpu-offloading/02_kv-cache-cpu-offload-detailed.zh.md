@@ -288,23 +288,23 @@ graph TB
 ```mermaid
 flowchart TD
     A["vllm-ascend 启动"] --> B["register_connector<br/>覆盖上游 SimpleCPUOffloadConnector"]
-    B --> C["用户配置<br/>kv_connector=SimpleCPUOffloadConnector"]
+    B --> C["用户配置<br/>kv_connector 为 SimpleCPUOffloadConnector"]
 
-    C --> D["AscendSimpleCPUOffloadConnector.__init__"]
-    D --> E["super().__init__<br/>创建临时 CUDA worker"]
-    E --> F{role == WORKER?}
+    C --> D["AscendSimpleCPUOffloadConnector 初始化"]
+    D --> E["调用父类初始化<br/>创建临时 CUDA worker"]
+    E --> F{role 是否为 WORKER?}
     F -- 否 --> G["connector 为 no-op"]
     F -- 是 --> H["替换为 SimpleCPUOffloadNPUWorker"]
 
     H --> I["register_kv_caches"]
-    I --> J["遍历 kv_caches<br/>_flatten_kv_value 展开 K/V"]
-    J --> K["按 untyped_storage.data_ptr 去重<br/>避免同一 NPU 分配重复注册"]
-    K --> L["_build_block_views<br/>从 tensor shape/stride 构建 view<br/>而非 storage.nbytes"]
+    I --> J["遍历 kv_caches<br/>flatten_kv_value 展开 K 和 V"]
+    J --> K["按 storage data_ptr 去重<br/>避免同一 NPU 分配重复注册"]
+    K --> L["build_block_views<br/>从 tensor shape 和 stride 构建 view<br/>而非 storage nbytes"]
     L --> M["计算 total_bytes_per_block"]
-    M --> N["num_cpu_blocks =<br/>cpu_capacity_bytes // total_bytes_per_block"]
-    N --> O["分配 CPU pinned mirror<br/>torch.zeros pin_memory=True"]
-    O --> P["创建 load_stream, store_stream<br/>普通 NPU Stream 无 priority"]
-    P --> Q["NPUDmaCopyBackend.init<br/>build_params 构建 store/load 参数<br/>启动后台拷贝线程"]
+    M --> N["num_cpu_blocks 等于<br/>cpu_capacity_bytes 除以 total_bytes_per_block"]
+    N --> O["分配 CPU pinned mirror<br/>torch.zeros pin_memory 为 True"]
+    O --> P["创建 load_stream 和 store_stream<br/>普通 NPU Stream 无 priority"]
+    P --> Q["NPUDmaCopyBackend init<br/>build_params 构建 store 和 load 参数<br/>启动后台拷贝线程"]
 
     style B fill:#ffe1e1
     style K fill:#fff4e1

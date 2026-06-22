@@ -523,21 +523,21 @@ ls -lh /dev/shm/ | grep cpu_kv_cache
 ```mermaid
 graph TB
     subgraph "方案一 NPUOffloadingSpec"
-        A1["KV Cache Events<br/>BlockStored medium=CPU<br/>最有效端到端观测"]
-        A2["TransferResult<br/>transfer_size/time/type<br/>需上游消费"]
+        A1["KV Cache Events<br/>BlockStored medium 为 CPU<br/>最有效端到端观测"]
+        A2["TransferResult<br/>transfer size time type<br/>需上游消费"]
         A3["启动 INFO 日志<br/>Allocating N CPU tensors"]
     end
 
     subgraph "方案二 AscendSimpleCPUOffload"
-        B1["启动 INFO 日志<br/>CPU blocks + GB 占用<br/>最直接容量观测"]
+        B1["启动 INFO 日志<br/>CPU blocks 和 GB 占用<br/>最直接容量观测"]
         B2["守护线程名<br/>npu-kv-offload-copy<br/>进程级观测"]
-        B3["传输过程静默<br/>依赖上游 events_list 轮询"]
+        B3["传输过程静默<br/>依赖上游 events list 轮询"]
     end
 
     subgraph "方案三 CPUOffloadingConnector"
         C1["CPU Prefix cache hit rate<br/>每 10 秒日志<br/>独有命中率指标"]
-        C2["MetadataServer 日志<br/>cpu swap space/num blocks/rank 注册"]
-        C3["/dev/shm SharedMemory<br/>可视化跨进程共享"]
+        C2["MetadataServer 日志<br/>cpu swap space 和 num blocks 和 rank 注册"]
+        C3["dev shm SharedMemory<br/>可视化跨进程共享"]
         C4["ZMQ IPC socket<br/>RPC 流量观测"]
     end
 
